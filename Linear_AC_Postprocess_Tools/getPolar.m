@@ -31,6 +31,11 @@ AUT_hxp(:,2) = AUT_hxp(:,2) - maxx;
 AUT_vcp(:,2) = AUT_vcp(:,2) - maxx;
 AUT_vxp(:,2) = AUT_vxp(:,2) - maxx;
 
+AUT_hcp(181,:) = AUT_hcp(1,:);
+AUT_hxp(181,:) = AUT_hxp(1,:);
+AUT_vcp(181,:) = AUT_vcp(1,:);
+AUT_vxp(181,:) = AUT_vxp(1,:);
+
 subplot(2,2,1);
 polarplot(AUT_hcp(:,1)/180*pi,AUT_hcp(:,2));
 rlim([-30 0]);
