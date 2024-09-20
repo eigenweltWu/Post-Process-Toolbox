@@ -13,6 +13,7 @@ $$
 $$
 
 由于天线相同，$G_r=G_t$，因而，
+
 $$
 [G]_{dB} = 20\log\left(\frac{4\pi R}{\lambda}\right)/\log(10)+[S_{21}]_{dB}
 $$
