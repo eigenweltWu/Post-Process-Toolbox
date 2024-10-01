@@ -1,5 +1,7 @@
-function SimData = readSimData(simpath)
+function [SimCo,SimX] = readSimData(simpath)
     simfile = fopen(simpath);
+    SimCo = zeros(361,2);
+    SimX = zeros(361,2);
     if simfile
         tline = fgets(simfile);
         tline = fgets(simfile);
@@ -20,4 +22,8 @@ function SimData = readSimData(simpath)
             SimData = [SimData;tempnum];
             tline = fgets(simfile);
         end
+        judge = var(SimData(:,1));
+        judgecol = 1+(judge==0);
+        SimCo = [SimData(:,judgecol), SimData(:,4)];
+        SimX = [SimData(:,judgecol), SimData(:,6)];
     end

@@ -1,24 +1,39 @@
-% beta版本，支持自动画图，如需修改作图结果请修改polar_template.opju
-% 本版本小波变换的参数暂未进行调整
-% 方向图自动对齐功能正在抓紧开发中...
 clear;
-templateDir = 'polar_template_ordinary.opju'; % 使用小波变换滤波
-% templateDir = 'polar_template.opju'; % 使用origin自带的fft滤波
-resultDir = 'Tri-band_5.6.opju'; % 自行更改
-simEPlaneDir = 'E:/Shoulder3_0826/Figures/polar5.6/horisim.txt'; % CST导出的
-simHPlaneDir = 'E:/Shoulder3_0826/Figures/polar5.6/vertisim.txt'; % CST导出的
-% 底下的四个路径注意格式！如果没有就直接写空！新加图表不会覆盖原有数据！
-meaEcoDir = 'E:/Shoulder3_0826/Measurements/9_11_measurement/measurement4_2/mea42_.txt';
-meaExDir = 'E:/Shoulder3_0826/Measurements/9_11_measurement/measurement4_4/mea44_.txt';
-meaHcoDir = 'E:/Shoulder3_0826/Measurements/9_11_measurement/measurement4_3/mea43_.txt';
-meaHxDir = 'E:/Shoulder3_0826/Measurements/9_11_measurement/measurement4/mea4_.txt';
-% 在beta版本中，需要人为输入方向图旋转角度进行调整。
-Angle_Eco = 0;
-Angle_Ex = 0;
-Angle_Hco = 0;
-Angle_Hx = 0;
-% 对应频率所在行数
-polarRow = 1229;
+
+useFFT = true; % Smooth data with fft.
+resultDir = 'resultpolar.opju'; % Path of result origin file,ended with .opju
+
+% The following paths should be set to '' if ignored.
+% 1. Simulated results from CST.
+simEPlaneDir = 'simE.txt'; % Path of simulated E-Plane
+simHPlaneDir = 'simH.txt'; % Path of simulated H-Plane
+% 2. Measured results in anechoic chamber.
+basedir = ''; % Root Path
+meaEcoDir = 'E_VP/mea.txt';
+% Sample path of E-Plane Co-Polarized Pattern.
+meaExDir = 'E_HP/mea.txt';
+% Sample path of E-Plane Cross-Polarized Pattern (Ignore if not measured)
+meaHcoDir = 'H_VP/mea.txt';
+% Sample path of H-Plane Co-Polarized Pattern.
+meaHxDir = 'H_HP/mea.txt';
+% Sample path of H-Plane Cross-Polarized Pattern (Ignore if not measured)
+
+nr_of_points = 180; % Number of sampling points
+Angle_Eco = 0; % Adjust angle of E-Plane Co-Pol
+Angle_Ex = 0; % Adjust angle of E-Plane Cross-Pol
+Angle_Hco = 0; % Adjust angle of H-Plane Co-Pol
+Angle_Hx = 0; % Adjust angle of H-Plane Cross-Pol
+
+polarRow = 2330; % Row number of the frequency
+
+magic = 0; % Magic
+
+%---------------Don't change codes below!----------------------
+if useFFT
+    templateDir = 'polar_template.opju'; % 使用origin自带的fft滤波
+else
+    templateDir = 'polar_template_ordinary.opju'; % 使用小波变换滤波
+end
 
 if ~exist(resultDir,'file')
     copyfile(templateDir,resultDir);
@@ -31,52 +46,64 @@ invoke(originObj,'Load',[pwd,'/',resultDir]);
 
 try 
 if isempty(simHPlaneDir) == 0
-    simHPlane = readSimData(simHPlaneDir);
-    mco = max(simHPlane(:,4));
-    mx = max(simHPlane(:,6));
-    if max(simHPlane(:,4)) < max(simHPlane(:,6))
-        simHPlane(:,[4,6]) = simHPlane(:,[6,4]);
+    [simHCo,simHx] = readSimData(simHPlaneDir);
+    mco = max(simHCo(:,2));
+    mx = max(simHx(:,2));
+    if mco < mx
+        t = simHCo(:,2);
+        simHCo(:,2) = simHx(:,2);
+        simHx(:,2) = t;
     end
-    simHPlane(:,4) = simHPlane(:,4) - max(mco,mx);
-    simHPlane(:,6) = simHPlane(:,6) - max(mco,mx);
-	invoke(originObj,'PutWorksheet','simHPlane',[simHPlane(:,1),simHPlane(:,4),simHPlane(:,6)]);
+    simHCo(:,2) = simHCo(:,2) - max(mco,mx);
+    simHx(:,2) = simHx(:,2) - max(mco,mx);
+	invoke(originObj,'PutWorksheet','simHPlane',....
+        [simHCo(:,1),simHCo(:,2),simHx(:,2)]);
 end
 
 if isempty(simEPlaneDir) == 0
-    simEPlane = readSimData(simEPlaneDir);
-    mco = max(simEPlane(:,4));
-    mx = max(simEPlane(:,6));
-    if max(simEPlane(:,4)) < max(simEPlane(:,6))
-        simEPlane(:,[4,6]) = simEPlane(:,[6,4]);
+    [simECo,simEx] = readSimData(simEPlaneDir);
+    mco = max(simECo(:,2));
+    mx = max(simEx(:,2));
+    if mco < mx
+        t = simECo(:,2);
+        simECo(:,2) = simEx(:,2);
+        simEx(:,2) = t;
     end
-    simEPlane(:,4) = simEPlane(:,4) - max(mco,mx);
-    simEPlane(:,6) = simEPlane(:,6) - max(mco,mx);
-	invoke(originObj,'PutWorksheet','simEPlane',[simEPlane(:,1),simEPlane(:,4),simEPlane(:,6)]);
+    simECo(:,2) = simECo(:,2) - max(mco,mx);
+    simEx(:,2) = simEx(:,2) - max(mco,mx);
+	invoke(originObj,'PutWorksheet','simEPlane',....
+        [simECo(:,1),simECo(:,2),simEx(:,2)]);
 end
 
 if isempty(meaEcoDir) == 0
-    [s21,polar_cur] = func_getS21(polarRow, polarRow,meaEcoDir,Angle_Eco);
-    polar_cur(:,2) = func_filter(polar_cur(:,2));
+    realDir = join([basedir, meaEcoDir],'');
+    [s21,polar_cur] = func_getS21(polarRow, polarRow,realDir,...
+        Angle_Eco,nr_of_points);
+    polar_cur(:,2) = polar_cur(:,2) - magic;
 	invoke(originObj,'PutWorksheet','meaEco',polar_cur);
 end
 
 if isempty(meaExDir) == 0
-    [s21,polar_cur] = func_getS21(polarRow, polarRow,meaExDir,Angle_Ex);
-    polar_cur(:,2) = func_filter(polar_cur(:,2));
+    realDir = join([basedir, meaExDir],'');
+    [s21,polar_cur] = func_getS21(polarRow, polarRow,realDir,...
+        Angle_Ex,nr_of_points);
+    polar_cur(:,2) = polar_cur(:,2) - magic;
 	invoke(originObj,'PutWorksheet','meaEx',polar_cur);
 end
 
 if isempty(meaHcoDir) == 0
-    [s21,polar_cur] = func_getS21(polarRow, polarRow,meaHcoDir,Angle_Hco);
-    %polar_cur(:,2) = polar_cur(:,2) - max(polar_cur(:,2));
-    polar_cur(:,2) = func_filter(polar_cur(:,2));
+    realDir = join([basedir, meaHcoDir],'');
+    [s21,polar_cur] = func_getS21(polarRow, polarRow,realDir,...
+        Angle_Hco,nr_of_points);
+    polar_cur(:,2) = polar_cur(:,2) - magic;
 	invoke(originObj,'PutWorksheet','meaHco',polar_cur);
 end
 
 if isempty(meaHxDir) == 0
-    [s21,polar_cur] = func_getS21(polarRow, polarRow,meaHxDir,Angle_Hx);
-    %polar_cur(:,2) = polar_cur(:,2) - max(polar_cur(:,2));
-    polar_cur(:,2) = func_filter(polar_cur(:,2));
+    realDir = join([basedir, meaHxDir],'');
+    [s21,polar_cur] = func_getS21(polarRow, polarRow,realDir,...
+        Angle_Hx,nr_of_points);
+    polar_cur(:,2) = polar_cur(:,2) - magic;
 	invoke(originObj,'PutWorksheet','meaHx',polar_cur);
 end
 
