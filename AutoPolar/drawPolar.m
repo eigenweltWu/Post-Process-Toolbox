@@ -1,21 +1,21 @@
 clear;
 
 useFFT = true; % Smooth data with fft.
-resultDir = 'resultpolar.opju'; % Path of result origin file,ended with .opju
+resultDir = 'polar.opju'; % Path of result origin file,ended with .opju
 
 % The following paths should be set to '' if ignored.
 % 1. Simulated results from CST.
-simEPlaneDir = 'simE.txt'; % Path of simulated E-Plane
-simHPlaneDir = 'simH.txt'; % Path of simulated H-Plane
+simEPlaneDir = 'E.txt'; % Path of simulated E-Plane
+simHPlaneDir = 'H.txt'; % Path of simulated H-Plane
 % 2. Measured results in anechoic chamber.
-basedir = ''; % Root Path
-meaEcoDir = 'E_VP/mea.txt';
+basedir = '3.95-6/'; % Root Path
+meaEcoDir = 'HP_VPOL/MEA.txt';
 % Sample path of E-Plane Co-Polarized Pattern.
-meaExDir = 'E_HP/mea.txt';
+meaExDir = 'HP_HPOL/MEA.txt';
 % Sample path of E-Plane Cross-Polarized Pattern (Ignore if not measured)
-meaHcoDir = 'H_VP/mea.txt';
+meaHcoDir = 'EP_VPOL/MEA.txt';
 % Sample path of H-Plane Co-Polarized Pattern.
-meaHxDir = 'H_HP/mea.txt';
+meaHxDir = 'EP_HPOL/MEA.txt';
 % Sample path of H-Plane Cross-Polarized Pattern (Ignore if not measured)
 
 nr_of_points = 180; % Number of sampling points
@@ -24,7 +24,7 @@ Angle_Ex = 0; % Adjust angle of E-Plane Cross-Pol
 Angle_Hco = 0; % Adjust angle of H-Plane Co-Pol
 Angle_Hx = 0; % Adjust angle of H-Plane Cross-Pol
 
-polarRow = 2330; % Row number of the frequency
+polarRow = 100; % Row number of the frequency
 
 magic = 0; % Magic
 
@@ -79,7 +79,7 @@ if isempty(meaEcoDir) == 0
     realDir = join([basedir, meaEcoDir],'');
     [s21,polar_cur] = func_getS21(polarRow, polarRow,realDir,...
         Angle_Eco,nr_of_points);
-    polar_cur(:,2) = polar_cur(:,2) - magic;
+    polar_cur(:,2) = polar_cur(:,2);
 	invoke(originObj,'PutWorksheet','meaEco',polar_cur);
 end
 
@@ -95,7 +95,7 @@ if isempty(meaHcoDir) == 0
     realDir = join([basedir, meaHcoDir],'');
     [s21,polar_cur] = func_getS21(polarRow, polarRow,realDir,...
         Angle_Hco,nr_of_points);
-    polar_cur(:,2) = polar_cur(:,2) - magic;
+    polar_cur(:,2) = polar_cur(:,2);
 	invoke(originObj,'PutWorksheet','meaHco',polar_cur);
 end
 
@@ -111,6 +111,9 @@ invoke(originObj, 'Execute', ['save ',[pwd,'\',resultDir]]);
 release(originObj);
 
 catch ErrorInfo
-    disp(ErrorInfo);
+    disp(ErrorInfo.message);
+    for i = 1:length(ErrorInfo.stack)
+        disp(ErrorInfo.stack(i));
+    end
     release(originObj);
 end
