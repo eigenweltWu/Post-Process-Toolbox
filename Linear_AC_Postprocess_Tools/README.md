@@ -2,6 +2,8 @@
 
 ## 更新日志
 
+**本项目已于2025年3月4日停止更新。增益获取请选用Gain over Frequency模块**
+
 Jiatong Wu Created. Aug.13, 2024.
 
 Jiatong Wu Modified. Sep.17, 2024. 
