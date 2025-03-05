@@ -17,7 +17,7 @@ rows = zeros(1,4);
 resfreq = zeros(endrow-beginrow+1,4);
 s21_db = zeros(endrow-beginrow+1,4);
 s21_linear = zeros(endrow-beginrow+1,4);
-progressBars = zeros(1, 4); % 进度存储数组
+progressBars = zeros(2, 4); % 进度存储数组
 D = parallel.pool.DataQueue;
 afterEach(D, @(data) updateProgressBar(data, 4, progressBars));
 
@@ -35,6 +35,7 @@ parfor i=1:4
         if strcmp(pth{end},'csv')
             dt = readtable(paths{i});
             s21_current_plane = table2array(dt);
+            send(D,[i,1,1]);
         else
             for row = 1:endrow-beginrow+1
                 temppath = '';
