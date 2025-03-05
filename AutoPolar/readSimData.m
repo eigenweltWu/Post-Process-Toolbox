@@ -6,16 +6,13 @@ function [SimCo,SimX] = readSimData(simpath)
         tline = fgets(simfile);
         tline = fgets(simfile);
         tline = fgets(simfile);
-        temp = string(tline);
-        temp = strsplit(temp);
-        tempnum = zeros(1,8);
-        for i = 2:9
-            tempnum(i-1) = str2num(temp(i));
-        end
-        SimData = tempnum;
+        SimData = [];
         while tline > 0
             temp = string(tline);
             temp = strsplit(temp);
+            if length(temp) < 10
+                temp = ["", temp];
+            end
             for i = 2:9
                 tempnum(i-1) = str2num(temp(i));
             end
@@ -27,3 +24,4 @@ function [SimCo,SimX] = readSimData(simpath)
         SimCo = [SimData(:,judgecol), SimData(:,4)];
         SimX = [SimData(:,judgecol), SimData(:,6)];
     end
+end
