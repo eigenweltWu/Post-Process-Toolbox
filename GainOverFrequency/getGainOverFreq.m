@@ -27,7 +27,6 @@ if isempty(Standard_path)
     s21_db = s21_db - standard + Standard_Gain;
 else
     for plane = 1:4
-        Standard_Gain = 0;
         for i = 1:rows(plane)
             for pt = 1:length(Standard_file)
                  if resfreq(i,plane) >= Standard_file(pt,1)
@@ -40,4 +39,4 @@ else
 end
 
 plot(max(resfreq')/1e9,max(s21_db',[],1));
-writematrix([max(resfreq')/1e9,max(s21_db',[],1)], save_name);
+writematrix([max(resfreq')/1e9;max(s21_db',[],1)]', save_name);
